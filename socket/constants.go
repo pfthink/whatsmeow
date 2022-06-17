@@ -20,7 +20,7 @@ const (
 	// Origin is the Origin header for all WhatsApp websocket connections
 	Origin = "https://web.whatsapp.com"
 	// URL is the websocket URL for the new multidevice protocol
-	URL = "wss://web.whatsapp.com/ws/chat"
+	URL = "wss://web.whatsapp.com:8443/ws/chat"
 )
 
 const (

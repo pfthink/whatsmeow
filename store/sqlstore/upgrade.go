@@ -37,7 +37,7 @@ func (c *Container) setVersion(tx *sql.Tx, version int) error {
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec("INSERT INTO whatsmeow_version (version) VALUES ($1)", version)
+	_, err = tx.Exec("INSERT INTO whatsmeow_version (version) VALUES (?)", version)
 	return err
 }
 
@@ -76,138 +76,126 @@ func (c *Container) Upgrade() error {
 }
 
 func upgradeV1(tx *sql.Tx, _ *Container) error {
-	_, err := tx.Exec(`CREATE TABLE whatsmeow_device (
-		jid TEXT PRIMARY KEY,
-
-		registration_id BIGINT NOT NULL CHECK ( registration_id >= 0 AND registration_id < 4294967296 ),
-
-		noise_key    bytea NOT NULL CHECK ( length(noise_key) = 32 ),
-		identity_key bytea NOT NULL CHECK ( length(identity_key) = 32 ),
-
-		signed_pre_key     bytea   NOT NULL CHECK ( length(signed_pre_key) = 32 ),
-		signed_pre_key_id  INTEGER NOT NULL CHECK ( signed_pre_key_id >= 0 AND signed_pre_key_id < 16777216 ),
-		signed_pre_key_sig bytea   NOT NULL CHECK ( length(signed_pre_key_sig) = 64 ),
-
-		adv_key         bytea NOT NULL,
-		adv_details     bytea NOT NULL,
-		adv_account_sig bytea NOT NULL CHECK ( length(adv_account_sig) = 64 ),
-		adv_device_sig  bytea NOT NULL CHECK ( length(adv_device_sig) = 64 ),
-
-		platform      TEXT NOT NULL DEFAULT '',
-		business_name TEXT NOT NULL DEFAULT '',
-		push_name     TEXT NOT NULL DEFAULT ''
-	)`)
+	_, err := tx.Exec(`create table IF NOT EXISTS whatsmeow_device
+(
+    jid                varchar(100)
+        primary key,
+    registration_id    BIGINT  not null,
+    noise_key          varchar(32)   not null,
+    identity_key       varchar(32)   not null,
+    signed_pre_key     varchar(32)   not null,
+    signed_pre_key_id  int not null,
+    signed_pre_key_sig varchar(64)   not null,
+    adv_key            varchar(64)   not null,
+    adv_details        varchar(64)   not null,
+    adv_account_sig    varchar(64)   not null,
+    adv_device_sig     varchar(64)   not null,
+    platform           varchar(100) default '' not null,
+    business_name      varchar(100) default '' not null,
+    push_name          varchar(100) default '' not null
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_identity_keys (
-		our_jid  TEXT,
-		their_id TEXT,
-		identity bytea NOT NULL CHECK ( length(identity) = 32 ),
-
-		PRIMARY KEY (our_jid, their_id),
-		FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_identity_keys
+(
+    our_jid   varchar(100) NOT NULL,
+    their_id  varchar(100),
+    identity  varchar(32) not null,
+    unique key (our_jid, their_id)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_pre_keys (
-		jid      TEXT,
-		key_id   INTEGER          CHECK ( key_id >= 0 AND key_id < 16777216 ),
-		key      bytea   NOT NULL CHECK ( length(key) = 32 ),
-		uploaded BOOLEAN NOT NULL,
-
-		PRIMARY KEY (jid, key_id),
-		FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	/*_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_pre_keys
+	(
+	    jid     varchar(100),
+	    key_id   int,
+	    key      varchar(32)   not null,
+	    uploaded int not null,
+	    unique key (jid, key_id)
+	   )`)
+		if err != nil {
+			return err
+		}*/
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_sessions
+(
+    our_jid  varchar(100),
+    their_id varchar(100),
+    session  varchar(5000),
+    unique key (our_jid, their_id)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_sessions (
-		our_jid  TEXT,
-		their_id TEXT,
-		session  bytea,
-
-		PRIMARY KEY (our_jid, their_id),
-		FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_sender_keys
+(
+    our_jid    varchar(100),
+    chat_id    varchar(100),
+    sender_id  varchar(100),
+    sender_key varchar(100) not null,
+    unique key (our_jid, chat_id, sender_id)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_sender_keys (
-		our_jid    TEXT,
-		chat_id    TEXT,
-		sender_id  TEXT,
-		sender_key bytea NOT NULL,
-
-		PRIMARY KEY (our_jid, chat_id, sender_id),
-		FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_app_state_sync_keys
+(
+    jid        varchar(100),
+    key_id      varchar(64),
+    key_data    varchar(64)  not null,
+    timestamp   datetime not null,
+    fingerprint varchar(64)  not null,
+    unique key (jid, key_id)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_app_state_sync_keys (
-		jid         TEXT,
-		key_id      bytea,
-		key_data    bytea  NOT NULL,
-		timestamp   BIGINT NOT NULL,
-		fingerprint bytea  NOT NULL,
-
-		PRIMARY KEY (jid, key_id),
-		FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_app_state_version
+(
+    jid     varchar(100),
+    name    varchar(100),
+    version BIGINT not null,
+    hash    varchar(500)  not null,
+    unique key (jid, name)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_app_state_version (
-		jid     TEXT,
-		name    TEXT,
-		version BIGINT NOT NULL,
-		hash    bytea  NOT NULL CHECK ( length(hash) = 128 ),
-
-		PRIMARY KEY (jid, name),
-		FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_app_state_mutation_macs
+(
+    jid       varchar(100),
+    name      varchar(100),
+    version   BIGINT,
+    index_mac varchar(500),
+    value_mac varchar(500) not null,
+    unique key (jid, name, version, index_mac)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_app_state_mutation_macs (
-		jid       TEXT,
-		name      TEXT,
-		version   BIGINT,
-		index_mac bytea          CHECK ( length(index_mac) = 32 ),
-		value_mac bytea NOT NULL CHECK ( length(value_mac) = 32 ),
-
-		PRIMARY KEY (jid, name, version, index_mac),
-		FOREIGN KEY (jid, name) REFERENCES whatsmeow_app_state_version(jid, name) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_contacts
+(
+    our_jid      varchar(100),
+    their_jid    varchar(100),
+    first_name   varchar(100),
+    full_name    varchar(100),
+    push_name    varchar(100),
+    business_name varchar(100),
+    unique key (our_jid, their_jid)
+)`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_contacts (
-		our_jid       TEXT,
-		their_jid     TEXT,
-		first_name    TEXT,
-		full_name     TEXT,
-		push_name     TEXT,
-		business_name TEXT,
-
-		PRIMARY KEY (our_jid, their_jid),
-		FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
-	if err != nil {
-		return err
-	}
-	_, err = tx.Exec(`CREATE TABLE whatsmeow_chat_settings (
-		our_jid       TEXT,
-		chat_jid      TEXT,
-		muted_until   BIGINT  NOT NULL DEFAULT 0,
-		pinned        BOOLEAN NOT NULL DEFAULT false,
-		archived      BOOLEAN NOT NULL DEFAULT false,
-
-		PRIMARY KEY (our_jid, chat_jid),
-		FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	)`)
+	_, err = tx.Exec(`create table IF NOT EXISTS whatsmeow_chat_settings
+(
+    our_jid     varchar(100),
+    chat_jid    varchar(100),
+    muted_until BIGINT  default 0 not null,
+    pinned      int default 0 not null,
+    archived    int default 0 not null,
+    unique key (our_jid, chat_jid)
+)`)
 	if err != nil {
 		return err
 	}
@@ -235,14 +223,18 @@ UPDATE whatsmeow_device SET adv_account_sig_key=(
 `
 
 func upgradeV2(tx *sql.Tx, container *Container) error {
-	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN adv_account_sig_key bytea CHECK ( length(adv_account_sig_key) = 32 )")
+	/*_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN adv_account_sig_key bytea CHECK ( length(adv_account_sig_key) = 32 )")
 	if err != nil {
 		return err
 	}
 	if container.dialect == "postgres" {
 		_, err = tx.Exec(fillSigKeyPostgres)
-	} else {
+	} else if container.dialect == "sqlite3" {
 		_, err = tx.Exec(fillSigKeySQLite)
+	} else {
+		fmt.Println("mysql not exec")
 	}
-	return err
+
+	return err*/
+	return nil
 }

@@ -14,6 +14,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/mdp/qrterminal/v3"
 	"mime"
 	"net/http"
 	"os"
@@ -24,8 +25,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/mdp/qrterminal/v3"
 	"google.golang.org/protobuf/proto"
 
 	"go.mau.fi/whatsmeow"
@@ -44,8 +45,11 @@ var log waLog.Logger
 
 var logLevel = "INFO"
 var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
-var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
-var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
+var dbDialect = flag.String("db-dialect", "mysql", "Database dialect (sqlite3 or postgres)")
+
+//var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
+var dbAddress = flag.String("db-address", "root:123456@tcp(127.0.0.1:3306)/whatsapp", "Database address")
+
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
 
 func main() {
@@ -85,6 +89,7 @@ func main() {
 			for evt := range ch {
 				if evt.Event == "code" {
 					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+					//qrterminal.Generate(evt.Code, qrterminal.L, os.Stdout)
 				} else {
 					log.Infof("QR channel result: %s", evt.Event)
 				}
