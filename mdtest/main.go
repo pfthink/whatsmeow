@@ -91,7 +91,7 @@ func main() {
 					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
 					//qrterminal.Generate(evt.Code, qrterminal.L, os.Stdout)
 				} else {
-					log.Infof("QR channel result: %s", evt.Event)
+					log.Infof("QR channel result: %s", evt.Event, evt.Code)
 				}
 			}
 		}()
@@ -412,7 +412,9 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		ts, err := cli.SendMessage(recipient, "", msg)
+		//id := GenerateMessageID()
+		msgId := whatsmeow.GenerateMessageID()
+		ts, err := cli.SendMessage(recipient, msgId, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
