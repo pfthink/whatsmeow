@@ -148,7 +148,7 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 }
 
 func (c *Container) GetDeviceByJidExc(jid string) ([]*store.Device, error) {
-	res, err := c.db.Query(getDeviceQuery)
+	res, err := c.db.Query(getDeviceQuery, jid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
