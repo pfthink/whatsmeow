@@ -7,9 +7,9 @@
 package whatsmeow
 
 import (
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/types/events"
+	waBinary "github.com/pfthink/whatsmeow/binary"
+	"github.com/pfthink/whatsmeow/types"
+	"github.com/pfthink/whatsmeow/types/events"
 )
 
 // TryFetchPrivacySettings will fetch the user's privacy settings, either from the in-memory cache or from the server.

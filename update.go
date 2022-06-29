@@ -13,8 +13,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"go.mau.fi/whatsmeow/socket"
-	"go.mau.fi/whatsmeow/store"
+	"github.com/pfthink/whatsmeow/socket"
+	"github.com/pfthink/whatsmeow/store"
 )
 
 // CheckUpdateResponse is the data returned by CheckUpdate.

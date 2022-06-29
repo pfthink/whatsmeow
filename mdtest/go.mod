@@ -1,11 +1,12 @@
-module go.mau.fi/whatsmeow/mdtest
+module github.com/pfthink/whatsmeow/mdtest
 
 go 1.17
 
 require (
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/mdp/qrterminal/v3 v3.0.0
-	go.mau.fi/whatsmeow v0.0.0-20220502122315-61256be77a41
+	github.com/pfthink/whatsmeow v0.0.0-20220502122315-61256be77a41
 	google.golang.org/protobuf v1.28.0
 )
 
@@ -17,4 +18,4 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 )
 
-replace go.mau.fi/whatsmeow => ../
+replace github.com/pfthink/whatsmeow => ../

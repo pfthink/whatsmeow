@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"time"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
+	waBinary "github.com/pfthink/whatsmeow/binary"
+	"github.com/pfthink/whatsmeow/types"
 )
 
 //type MediaConnIP struct {

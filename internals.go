@@ -6,7 +6,7 @@
 
 package whatsmeow
 
-import waBinary "go.mau.fi/whatsmeow/binary"
+import waBinary "github.com/pfthink/whatsmeow/binary"
 
 type DangerousInternalClient struct {
 	c *Client
