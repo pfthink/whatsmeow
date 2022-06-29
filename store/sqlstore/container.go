@@ -172,6 +172,20 @@ func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
+	if sess != nil {
+		return c.NewDevice(), nil
+	}
+	return sess, err
+}
+
+func (c *Container) GetDeviceByJid(jid string) (*store.Device, error) {
+	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if sess != nil {
+		return c.NewDevice(), nil
+	}
 	return sess, err
 }
 
