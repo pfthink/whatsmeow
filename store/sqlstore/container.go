@@ -147,6 +147,34 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	return sessions, nil
 }
 
+func (c *Container) GetDeviceByJidExc(jid string) ([]*store.Device, error) {
+	res, err := c.db.Query(getDeviceQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query sessions: %w", err)
+	}
+	sessions := make([]*store.Device, 0)
+	for res.Next() {
+		sess, scanErr := c.scanDevice(res)
+		if scanErr != nil {
+			return sessions, scanErr
+		}
+		sessions = append(sessions, sess)
+	}
+	return sessions, nil
+}
+
+func (c *Container) GetDeviceByJid(jid string) (*store.Device, error) {
+	devices, err := c.GetDeviceByJidExc(jid)
+	if err != nil {
+		return nil, err
+	}
+	if len(devices) == 0 {
+		return c.NewDevice(), nil
+	} else {
+		return devices[0], nil
+	}
+}
+
 // GetFirstDevice is a convenience method for getting the first device in the store. If there are
 // no devices, then a new device will be created. You should only use this if you don't want to
 // have multiple sessions simultaneously.
@@ -168,17 +196,6 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 //
 // Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if sess != nil {
-		return c.NewDevice(), nil
-	}
-	return sess, err
-}
-
-func (c *Container) GetDeviceByJid(jid string) (*store.Device, error) {
 	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
