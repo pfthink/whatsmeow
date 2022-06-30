@@ -77,7 +77,7 @@ func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 }
 
 const getAllDevicesQuery = `
-SELECT jid, registration_id, noise_key, identity_key,
+SELECT jid, jid_user, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
        platform, business_name, push_name
@@ -85,6 +85,8 @@ FROM whatsmeow_device
 `
 
 const getDeviceQuery = getAllDevicesQuery + " WHERE jid=?"
+
+const getDeviceByJidUserQuery = getAllDevicesQuery + " WHERE jid_user=?"
 
 type scannable interface {
 	Scan(dest ...interface{}) error
@@ -147,8 +149,8 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	return sessions, nil
 }
 
-func (c *Container) GetDeviceByJidExc(jid string) ([]*store.Device, error) {
-	res, err := c.db.Query(getDeviceQuery, jid)
+func (c *Container) GetDeviceByJidUserExc(jid string) ([]*store.Device, error) {
+	res, err := c.db.Query(getDeviceByJidUserQuery, jid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
@@ -163,8 +165,8 @@ func (c *Container) GetDeviceByJidExc(jid string) ([]*store.Device, error) {
 	return sessions, nil
 }
 
-func (c *Container) GetDeviceByJid(jid string) (*store.Device, error) {
-	devices, err := c.GetDeviceByJidExc(jid)
+func (c *Container) GetDeviceByJidUser(jid string) (*store.Device, error) {
+	devices, err := c.GetDeviceByJidUserExc(jid)
 	if err != nil {
 		return nil, err
 	}
@@ -208,11 +210,11 @@ func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 
 const (
 	insertDeviceQuery = `
-		INSERT INTO whatsmeow_device (jid, registration_id, noise_key, identity_key,
+		INSERT INTO whatsmeow_device (jid, jid_user, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
 									  platform, business_name, push_name)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE platform=?, business_name=?, push_name=?
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=?`
@@ -264,7 +266,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 		return ErrDeviceIDMustBeSet
 	}
 	_, err := c.db.Exec(insertDeviceQuery,
-		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
+		device.ID.String(), device.ID.User, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
 		device.Platform, device.BusinessName, device.PushName,
