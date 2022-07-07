@@ -70,7 +70,7 @@ func main() {
 		log.Errorf("Failed to connect to database: %v", err)
 		return
 	}
-	device, err := storeContainer.GenerateDevice()
+	device, err := storeContainer.GetDeviceByJidUser("8615221427093")
 	if err != nil {
 		log.Errorf("Failed to get device: %v", err)
 		return
