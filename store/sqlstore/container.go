@@ -256,8 +256,7 @@ const (
 		INSERT INTO whatsmeow_qrcode_record (jid, noise_key_pub,identity_key_pub,adv_secret_key,scan_state)
 		VALUES (?, ?, ?, ?, ?)
 	`
-	hasScanQrcode = `select true
-      FROM whatsmeow_qrcode_record WHERE noise_key_pub=? and identity_key_pub=? and adv_secret_key=? and deleted = 0 `
+	hasScanQrcode = `select jid FROM whatsmeow_qrcode_record WHERE noise_key_pub=? and identity_key_pub=? and adv_secret_key=? and deleted = 0 `
 
 	deleteQrcodeRecord = `update whatsmeow_qrcode_record set deleted = 1 where
       identity_key_pub=? and identity_key_pub=? and adv_secret_key=?`
@@ -319,10 +318,10 @@ func (c *Container) DeleteDevice(store *store.Device) error {
 	return err
 }
 
-func (c *Container) HasScanQrcode(noiseKeyPub, identityKeyPub, advSecret string) (has bool, err error) {
-	err = c.db.QueryRow(hasScanQrcode, noiseKeyPub, identityKeyPub, advSecret).Scan(&has)
+func (c *Container) HasScanQrcode(noiseKeyPub, identityKeyPub, advSecret string) (jid string, err error) {
+	err = c.db.QueryRow(hasScanQrcode, noiseKeyPub, identityKeyPub, advSecret).Scan(&jid)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
-	return has, nil
+	return jid, nil
 }
