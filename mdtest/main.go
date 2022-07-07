@@ -70,7 +70,7 @@ func main() {
 		log.Errorf("Failed to connect to database: %v", err)
 		return
 	}
-	device, err := storeContainer.GetFirstDevice()
+	device, err := storeContainer.GenerateDevice()
 	if err != nil {
 		log.Errorf("Failed to get device: %v", err)
 		return
@@ -90,6 +90,7 @@ func main() {
 				if evt.Event == "code" {
 					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
 					//qrterminal.Generate(evt.Code, qrterminal.L, os.Stdout)
+					fmt.Println("code:", evt.Code)
 				} else {
 					log.Infof("QR channel result: %s", evt.Event, evt.Code)
 				}

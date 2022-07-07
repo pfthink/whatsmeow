@@ -208,6 +208,10 @@ func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 	return sess, err
 }
 
+func (c *Container) GenerateDevice() (*store.Device, error) {
+	return c.NewDevice(), nil
+}
+
 const (
 	insertDeviceQuery = `
 		INSERT INTO whatsmeow_device (jid, jid_user, registration_id, noise_key, identity_key,
