@@ -1,4 +1,4 @@
-module whatsmeow
+module github.com/pfthink/whatsmeow
 
 go 1.18
 
