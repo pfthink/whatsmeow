@@ -13,14 +13,14 @@ import (
 
 // MessageSource contains basic sender and chat information about a message.
 type MessageSource struct {
-	Chat     JID  // The chat where the message was sent.
-	Sender   JID  // The user who sent the message.
-	IsFromMe bool // Whether the message was sent by the current user instead of someone else.
-	IsGroup  bool // Whether the chat is a group chat or broadcast list.
+	Chat     JID  `json:"chat"`   // The chat where the message was sent.
+	Sender   JID  `json:"sender"` // The user who sent the message.
+	IsFromMe bool `json:"fromMe"` // Whether the message was sent by the current user instead of someone else.
+	IsGroup  bool `json:"group"`  // Whether the chat is a group chat or broadcast list.
 
 	// When sending a read receipt to a broadcast list message, the Chat is the broadcast list
 	// and Sender is you, so this field contains the recipient of the read receipt.
-	BroadcastListOwner JID
+	BroadcastListOwner JID `json:"broadcastListOwner"`
 }
 
 // IsIncomingBroadcast returns true if the message was sent to a broadcast list instead of directly to the user.
