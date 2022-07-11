@@ -1,12 +1,13 @@
-module github.com/pfthink/whatsmeow
+module whatsmeow
 
-go 1.17
+go 1.18
 
 require (
 	github.com/gorilla/websocket v1.5.0
-	go.mau.fi/libsignal v0.0.0-20220425070825-c40c839ee6a0
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	github.com/pfthink/whatsmeow v1.3.0
+	go.mau.fi/libsignal v0.0.0-20220628090436-4d18b66b087e
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	google.golang.org/protobuf v1.28.0
 )
 
-require filippo.io/edwards25519 v1.0.0-rc.1 // indirect
+require filippo.io/edwards25519 v1.0.0 // indirect

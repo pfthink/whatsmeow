@@ -39,15 +39,15 @@ type DeviceSentMeta struct {
 // MessageInfo contains metadata about an incoming message.
 type MessageInfo struct {
 	MessageSource
-	ID        string
-	Type      string
-	PushName  string
-	Timestamp time.Time
-	Category  string
-	Multicast bool
-	MediaType string
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`
+	PushName  string    `json:"pushName"`
+	Timestamp time.Time `json:"timestamp"`
+	Category  string    `json:"category"`
+	Multicast bool      `json:"multicast"`
+	MediaType string    `json:"mediaType"`
 
-	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.
+	DeviceSentMeta *DeviceSentMeta `json:"deviceSentMeta"` // Metadata for direct messages sent from another one of the user's own devices.
 }
 
 // SourceString returns a log-friendly representation of who sent the message and where.
