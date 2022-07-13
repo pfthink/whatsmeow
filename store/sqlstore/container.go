@@ -86,7 +86,7 @@ FROM whatsmeow_device
 
 const getDeviceQuery = getAllDevicesQuery + " WHERE jid=?"
 
-const getDeviceByJidUserQuery = getAllDevicesQuery + " WHERE jid_user=?"
+const getDeviceByJidUserQuery = getAllDevicesQuery + " WHERE jid_user=? order by created_time desc limit 1 "
 
 type scannable interface {
 	Scan(dest ...interface{}) error
@@ -171,7 +171,8 @@ func (c *Container) GetDeviceByJidUser(jid string) (*store.Device, error) {
 		return nil, err
 	}
 	if len(devices) == 0 {
-		return c.NewDevice(), nil
+		//return c.NewDevice(), nil
+		return nil, nil
 	} else {
 		return devices[0], nil
 	}
