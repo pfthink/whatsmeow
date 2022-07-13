@@ -71,7 +71,7 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 			qrc.log.Debugf("QR code channel is closed, exiting QR emitter")
 			return
 		}
-		timeout := 20 * time.Second
+		timeout := 60 * time.Second
 		if len(evt.Codes) == 6 {
 			timeout = 60 * time.Second
 		}
