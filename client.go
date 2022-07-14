@@ -122,8 +122,9 @@ type Client struct {
 	uniqueID  string
 	idCounter uint32
 
-	proxy socket.Proxy
-	http  *http.Client
+	proxy   socket.Proxy
+	http    *http.Client
+	BizType string
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
