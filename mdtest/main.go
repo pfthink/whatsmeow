@@ -545,7 +545,7 @@ func handleCmd(cmd string, args []string) {
 var historySyncID int32
 var startupTime = time.Now().Unix()
 
-func handler(rawEvt interface{}) {
+func handler(rawEvt interface{}, newCli *whatsmeow.Client) {
 	switch evt := rawEvt.(type) {
 	case *events.AppStateSyncComplete:
 		if len(cli.Store.PushName) > 0 && evt.Name == appstate.WAPatchCriticalBlock {
