@@ -70,7 +70,9 @@ func main() {
 		log.Errorf("Failed to connect to database: %v", err)
 		return
 	}
-	device, err := storeContainer.GetDeviceByJidUser("8615221427093")
+	//device, err := storeContainer.GetDeviceByJidUser("8615221427093")
+	device, err := storeContainer.GenerateDevice()
+
 	if err != nil {
 		log.Errorf("Failed to get device: %v", err)
 		return
@@ -98,7 +100,7 @@ func main() {
 		}()
 	}
 
-	cli.AddEventHandler(handler)
+	cli.AddEventHandler(handler, cli)
 	err = cli.Connect()
 	if err != nil {
 		log.Errorf("Failed to connect: %v", err)
@@ -628,6 +630,7 @@ func handler(rawEvt interface{}) {
 		enc := json.NewEncoder(file)
 		enc.SetIndent("", "  ")
 		err = enc.Encode(evt.Data)
+		cli.Store.Contacts.GetAllContacts()
 		if err != nil {
 			log.Errorf("Failed to write history sync: %v", err)
 			return
@@ -650,5 +653,8 @@ func handler(rawEvt interface{}) {
 		}
 	case *events.KeepAliveRestored:
 		log.Debugf("Keepalive restored")
+	case *events.PushName:
+		fmt.Println("pushName", evt.Message.PushName)
 	}
+
 }
