@@ -104,7 +104,7 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 	}
 }
 
-func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
+func (qrc *qrChannel) handleEvent(rawEvt interface{}, cli *Client) {
 	if atomic.LoadUint32(&qrc.closed) == 1 {
 		qrc.log.Debugf("Dropping event of type %T, channel is closed", rawEvt)
 		return
@@ -167,6 +167,6 @@ func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, erro
 		log:     cli.Log.Sub("QRChannel"),
 		ctx:     ctx,
 	}
-	qrc.handlerID = cli.AddEventHandler(qrc.handleEvent)
+	qrc.handlerID = cli.AddEventHandler(qrc.handleEvent, cli)
 	return ch, nil
 }
