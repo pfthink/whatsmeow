@@ -445,11 +445,11 @@ func (cli *Client) Logout() error {
 //   func (mycli *MyClient) myEventHandler(evt interface{}) {
 //        // Handle event and access mycli.WAClient
 //   }
-func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
+func (cli *Client) AddEventHandler(handler EventHandler, newCli *Client) uint32 {
 	nextID := atomic.AddUint32(&nextHandlerID, 1)
-	cli.eventHandlersLock.Lock()
-	cli.eventHandlers = append(cli.eventHandlers, wrappedEventHandler{handler, nextID})
-	cli.eventHandlersLock.Unlock()
+	newCli.eventHandlersLock.Lock()
+	newCli.eventHandlers = append(newCli.eventHandlers, wrappedEventHandler{handler, nextID})
+	newCli.eventHandlersLock.Unlock()
 	return nextID
 }
 
