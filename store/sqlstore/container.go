@@ -77,7 +77,7 @@ func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 }
 
 const getAllDevicesQuery = `
-SELECT jid, registration_id, noise_key, identity_key,
+SELECT jid, biz_type, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
        platform, business_name, push_name
@@ -101,7 +101,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var account waProto.ADVSignedDeviceIdentity
 
 	err := row.Scan(
-		&device.ID, &device.RegistrationID, &noisePriv, &identityPriv,
+		&device.ID, &device.BizType, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
 		&device.Platform, &device.BusinessName, &device.PushName)
@@ -215,11 +215,11 @@ func (c *Container) GenerateDevice() (*store.Device, error) {
 
 const (
 	insertDeviceQuery = `
-		INSERT INTO whatsmeow_device (jid, jid_user, registration_id, noise_key, identity_key,
+		INSERT INTO whatsmeow_device (jid, jid_user, biz_type, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
 									  platform, business_name, push_name)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE platform=?, business_name=?, push_name=?
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=?`
@@ -270,7 +270,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 		return ErrDeviceIDMustBeSet
 	}
 	_, err := c.db.Exec(insertDeviceQuery,
-		device.ID.String(), device.ID.User, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
+		device.ID.String(), device.ID.User, device.BizType, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
 		device.Platform, device.BusinessName, device.PushName,
