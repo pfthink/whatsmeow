@@ -267,6 +267,10 @@ func (cli *Client) requestAppStateKeys(rawKeyIDs [][]byte) {
 		},
 	}
 	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)
+	if cli.Store.ID == nil {
+		cli.Log.Warnf("Current device may logout in main device")
+		return
+	}
 	_, err := cli.SendMessage(cli.Store.ID.ToNonAD(), "", msg)
 	if err != nil {
 		cli.Log.Warnf("Failed to send app state key request: %v", err)
