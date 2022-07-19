@@ -602,6 +602,22 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 	return *info, nil
 }
 
+func (s *SQLStore) GetContactByOurAndTheir(our types.JID, their types.JID) (types.ContactInfo, error) {
+	var first, full, push, business sql.NullString
+	err := s.db.QueryRow(getContactQuery, our, their).Scan(&first, &full, &push, &business)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return types.ContactInfo{}, err
+	}
+	info := &types.ContactInfo{
+		Found:        err == nil,
+		FirstName:    first.String,
+		FullName:     full.String,
+		PushName:     push.String,
+		BusinessName: business.String,
+	}
+	return *info, nil
+}
+
 func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 	s.contactCacheLock.Lock()
 	defer s.contactCacheLock.Unlock()

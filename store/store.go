@@ -85,6 +85,7 @@ type ContactStore interface {
 	PutAllContactNames(contacts []ContactEntry) error
 	GetContact(user types.JID) (types.ContactInfo, error)
 	GetAllContacts() (map[types.JID]types.ContactInfo, error)
+	GetContactByOurAndTheir(our types.JID, their types.JID) (types.ContactInfo, error)
 }
 
 type ChatSettingsStore interface {
