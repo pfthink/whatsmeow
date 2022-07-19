@@ -424,7 +424,7 @@ const (
         ON DUPLICATE KEY UPDATE first_name=?, full_name=?
    `
 	putPushNameQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, push_name) VALUES (?, ?, ?)
+		INSERT INTO whatsmeow_contacts (our_jid, our_jid_user, their_jid, push_name) VALUES (?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE push_name=?
 	`
 	putBusinessNameQuery = `
@@ -433,6 +433,10 @@ const (
 	`
 	getContactQuery = `
 		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=? AND their_jid=?
+	`
+
+	getContactQueryByOurJidUserAndTheir = `
+		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid_user=? AND their_jid=?
 	`
 	getAllContactsQuery = `
 		SELECT their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=?
@@ -448,7 +452,8 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		return false, "", err
 	}
 	if cached.PushName != pushName {
-		_, err = s.db.Exec(putPushNameQuery, s.JID, user, pushName, pushName)
+		ourJidType, _ := types.ParseJID(s.JID)
+		_, err = s.db.Exec(putPushNameQuery, s.JID, ourJidType.User+"@"+ourJidType.Server, user, pushName, pushName)
 		if err != nil {
 			return false, "", err
 		}
@@ -604,7 +609,7 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 
 func (s *SQLStore) GetContactByOurAndTheir(our types.JID, their types.JID) (types.ContactInfo, error) {
 	var first, full, push, business sql.NullString
-	err := s.db.QueryRow(getContactQuery, our, their).Scan(&first, &full, &push, &business)
+	err := s.db.QueryRow(getContactQueryByOurJidUserAndTheir, our, their).Scan(&first, &full, &push, &business)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return types.ContactInfo{}, err
 	}
