@@ -53,7 +53,6 @@ var dbAddress = flag.String("db-address", "root:123456@tcp(127.0.0.1:3306)/whats
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
 
 func main() {
-	// test merge2
 	waBinary.IndentXML = true
 	flag.Parse()
 
@@ -73,14 +72,14 @@ func main() {
 	}
 	//device, err := storeContainer.GetDeviceByJidUser("8615221427093")
 	device, err := storeContainer.GenerateDevice()
-	device.BizType = "crm"
+
 	if err != nil {
 		log.Errorf("Failed to get device: %v", err)
 		return
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
-	cli.BizType = device.BizType
+
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {
 		// This error means that we're already logged in, so ignore it.
@@ -569,10 +568,6 @@ func handler(rawEvt interface{}, newCli *whatsmeow.Client) {
 		} else {
 			log.Infof("Marked self as available")
 		}
-	case *events.LoggedOut:
-		log.Infof("Event LoggedOut")
-	case *events.ClientOutdated:
-		log.Infof("ClientOutdated")
 	case *events.StreamReplaced:
 		os.Exit(0)
 	case *events.Message:
@@ -625,9 +620,6 @@ func handler(rawEvt interface{}, newCli *whatsmeow.Client) {
 			log.Infof("%s is now online", evt.From)
 		}
 	case *events.HistorySync:
-		if true {
-			return
-		}
 		id := atomic.AddInt32(&historySyncID, 1)
 		fileName := fmt.Sprintf("history-%d-%d.json", startupTime, id)
 		file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
@@ -638,6 +630,7 @@ func handler(rawEvt interface{}, newCli *whatsmeow.Client) {
 		enc := json.NewEncoder(file)
 		enc.SetIndent("", "  ")
 		err = enc.Encode(evt.Data)
+		cli.Store.Contacts.GetAllContacts()
 		if err != nil {
 			log.Errorf("Failed to write history sync: %v", err)
 			return
